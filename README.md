@@ -1,6 +1,6 @@
 ﻿# DatPhongKhachSan
 
-# Hệ thống Quản lý Khách sạn (Hotel Management System)
+# Hệ thống Quản lý đặt phòng Khách sạn 
 
 ## Giới thiệu
 
@@ -148,4 +148,5 @@ Server sẽ khởi chạy tại: `http://localhost:3000`
 
 ## License
 Dự án phục vụ mục đích học tập và phát triển mã nguồn mở.
+
 
