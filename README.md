@@ -97,11 +97,17 @@ JWT_SECRET=mysecretkey123
 ```
 
 ### 4. Chạy ứng dụng
-**Chế độ Development (tự động restart khi sửa code):**
+**Chế độ Development (tự động restart khi sửa code):
+web cho nhà quản lý đặt phồng khách sạn**
 ```bash
-npm run dev
+cd server
+npm run dev    
 ```
-
+**web cho khách hàng đặt phòng**
+```bash
+cd server
+npm run dev:customer    
+```
 **Chế độ Production:**
 ```bash
 npm start
@@ -142,3 +148,4 @@ Server sẽ khởi chạy tại: `http://localhost:3000`
 
 ## License
 Dự án phục vụ mục đích học tập và phát triển mã nguồn mở.
+
