@@ -1,0 +1,71 @@
+<div class="page">
+  <div class="grid2">
+    <div class="card">
+      <h3>Tạo đặt phòng</h3>
+
+      <div class="form-row">
+        <label>Khách hàng</label>
+        <select id="bkCustomer" class="input"></select>
+      </div>
+
+      <div class="form-row">
+        <label>Phòng trống</label>
+        <select id="bkRoom" class="input"></select>
+      </div>
+
+      <div class="form-row">
+        <label>Ngày nhận</label>
+        <input id="bkCheckIn" type="date" class="input" />
+      </div>
+
+      <div class="form-row">
+        <label>Ngày trả</label>
+        <input id="bkCheckOut" type="date" class="input" />
+      </div>
+
+      <div class="form-row">
+        <label>Số người</label>
+        <input id="bkSoNguoi" type="number" class="input" min="1" value="1" />
+      </div>
+
+      <div class="form-row">
+        <label>Tiền cọc</label>
+        <input id="bkTienCoc" type="number" class="input" min="0" value="0" />
+      </div>
+
+      <div class="form-row" style="background: #f8fafc; padding: 10px; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between;">
+          <label>Tạm tính:</label>
+          <strong id="bkTotalPrice">0 ₫</strong>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Ghi chú</label>
+        <textarea id="bkGhiChu" class="input" rows="3"></textarea>
+      </div>
+
+      <button id="btnCreateBooking" class="btn btn-primary">Tạo đặt phòng</button>
+      <div id="bkMsg" class="muted" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Phòng theo tình trạng</h3>
+
+      <div class="section">
+        <h4>Phòng trống (ưu tiên)</h4>
+        <div id="roomsTrong" class="list"></div>
+      </div>
+
+      <div class="section">
+        <h4>Phòng đã đặt (để check-in / huỷ)</h4>
+        <div id="roomsDaDat" class="list"></div>
+      </div>
+
+      <div class="section">
+        <h4>Phòng đang dọn / bảo trì</h4>
+        <div id="roomsBusy" class="list"></div>
+      </div>
+    </div>
+  </div>
+</div>

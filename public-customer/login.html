@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng nhập - Khách sạn</title>
+  <link rel="stylesheet" href="/login.css" />
+</head>
+<body>
+  <div class="bg"></div>
+
+  <main class="card">
+    <header class="brand">
+      <div class="logo">H</div>
+      <div>
+        <h1>Khách sạn</h1>
+        <p>Đăng nhập để đặt phòng</p>
+      </div>
+    </header>
+
+    <form class="form" autocomplete="on" id="loginForm">
+      <label>
+        <span>Tên đăng nhập / Email</span>
+        <input name="identifier" type="text" placeholder="vd: khachhang123 hoặc email@example.com" required />
+      </label>
+
+      <label>
+        <span>Mật khẩu</span>
+        <input name="password" type="password" placeholder="••••••••" required />
+      </label>
+
+      <div class="row">
+        <label class="chk">
+          <input type="checkbox" name="remember" />
+          <span>Ghi nhớ đăng nhập</span>
+        </label>
+      </div>
+
+      <div id="errorMsg" style="color: #ef4444; margin: 10px 0; display: none;"></div>
+
+      <button class="btn" type="submit">Đăng nhập</button>
+
+      <p class="note" style="text-align: center; margin-top: 20px;">
+        Chưa có tài khoản? <a href="/register" style="color: #0ea5e9;">Đăng ký ngay</a>
+      </p>
+    </form>
+  </main>
+
+  <script>
+    // Check if already logged in
+    const token = localStorage.getItem("customer_access_token");
+    if (token) {
+      window.location.href = "/dashboard";
+    }
+
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.style.display = "none";
+      
+      const formData = new FormData(form);
+      const payload = {
+        identifier: formData.get("identifier").trim(),
+        password: formData.get("password")
+      };
+
+      if (!payload.identifier || !payload.password) {
+        errorMsg.textContent = "Vui lòng nhập đầy đủ thông tin";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      try {
+        const res = await fetch("/customer-auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+        
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          errorMsg.textContent = `Lỗi phản hồi từ server: ${text || "Không thể phân tích phản hồi"}`;
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        if (!res.ok) {
+          errorMsg.textContent = data.message || `Đăng nhập thất bại (${res.status})`;
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        // Save tokens and account info
+        if (data.accessToken) {
+          localStorage.setItem("customer_access_token", data.accessToken);
+        }
+        if (data.account) {
+          localStorage.setItem("customer_info", JSON.stringify(data.account));
+        }
+
+        window.location.href = "/dashboard";
+      } catch (err) {
+        console.error("Login error:", err);
+        errorMsg.textContent = `Lỗi kết nối: ${err.message || "Không thể kết nối đến server"}`;
+        errorMsg.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

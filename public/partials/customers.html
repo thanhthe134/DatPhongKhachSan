@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quản lý khách hàng</title>
+  <link rel="stylesheet" href="/assets/dashboard.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">H</div>
+      <div>
+        <div class="t">Hotel Admin</div>
+        <small class="muted">Customers</small>
+      </div>
+    </div>
+
+    <div class="user">
+      <div><b id="uName">...</b></div>
+      <small id="uRole">...</small>
+    </div>
+
+    <nav class="nav">
+      <a href="/dashboard" >🏠 Tổng quan</a>
+      <a href="/dashboard#rooms">🛏️ Phòng</a>
+      <a href="/customers.html" class="active">👥 Khách hàng</a>
+    </nav>
+  </aside>
+
+  <section class="main">
+    <div class="topbar">
+      <div><b>Quản lý khách hàng</b></div>
+      <div class="row">
+        <button class="btn" id="btnReload">Reload</button>
+        <button class="btn danger" id="btnLogout">Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div class="row" style="flex:1">
+            <input id="q" class="btn" style="min-width:280px" placeholder="Tìm: mã KH / họ tên / CCCD / SĐT / email" />
+            <button class="btn" id="btnSearch">Tìm</button>
+            <button class="btn" id="btnClear">Xóa lọc</button>
+          </div>
+          <!-- <button class="btn primary" id="btnAdd">+ Thêm khách</button> -->
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <table class="table" id="tbl">
+        <thead>
+          <tr>
+            <th>Mã KH</th>
+            <th>Họ tên</th>
+            <th>CCCD</th>
+            <th>SĐT</th>
+            <th>Email</th>
+            <th>Địa chỉ</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="height:12px"></div>
+      <div class="card muted">
+        Gợi ý: Bấm “Lịch sử” để xem lịch sử đặt phòng/hóa đơn của khách (hiện đang placeholder, sẽ nối sau khi bạn làm module Booking/Invoice).
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Modal Add/Edit -->
+<div class="modal" id="m">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b id="mt">Thêm khách hàng</b>
+      <button class="btn" id="mClose">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Họ tên</label>
+      <input id="hoTen" placeholder="VD: Nguyễn Văn A" />
+    </div>
+    <div class="field">
+      <label>CCCD (không trùng)</label>
+      <input id="cccd" placeholder="12 số..." />
+    </div>
+
+    <div class="row">
+      <div class="field" style="flex:1">
+        <label>SĐT</label>
+        <input id="sdt" placeholder="VD: 09..." />
+      </div>
+      <div class="field" style="flex:1">
+        <label>Email</label>
+        <input id="email" placeholder="VD: a@gmail.com" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Địa chỉ</label>
+      <input id="diaChi" placeholder="VD: Hà Nội" />
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn primary" id="mSave">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal History -->
+<div class="modal" id="h">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b>Lịch sử khách hàng</b>
+      <button class="btn" id="hClose">✕</button>
+    </div>
+
+    <pre id="hOut" style="white-space:pre-wrap;margin:10px 0 0;background:#f8fafc;padding:10px;border-radius:12px;border:1px solid #e5e7eb"></pre>
+  </div>
+</div>
+
+<script>
+// ===== Auth helpers (giống dashboard.js) =====
+async function apiFetch(url, options = {}) {
+  let token = localStorage.getItem("access_token");
+  options.headers = options.headers || {};
+  if (token) options.headers["Authorization"] = "Bearer " + token;
+
+  let res = await fetch(url, { ...options, credentials: "include" });
+
+  if (res.status === 401) {
+    const r = await fetch("/auth/refresh", { method: "POST", credentials: "include" });
+    if (r.ok) {
+      const j = await r.json();
+      localStorage.setItem("access_token", j.accessToken);
+      options.headers["Authorization"] = "Bearer " + j.accessToken;
+      res = await fetch(url, { ...options, credentials: "include" });
+    } else {
+      localStorage.removeItem("access_token");
+      location.href = "/login.html";
+    }
+  }
+  return res;
+}
+
+async function loadUser() {
+  const res = await apiFetch("/api/dashboard");
+  const data = await res.json();
+  document.getElementById("uName").textContent = data?.user?.username || "User";
+  document.getElementById("uRole").textContent = "Role: " + (data?.user?.role || "UNKNOWN");
+}
+
+// ===== UI state =====
+let cache = [];
+let editingId = null;
+
+const modal = document.getElementById("m");
+const openM = () => modal.classList.add("open");
+const closeM = () => modal.classList.remove("open");
+document.getElementById("mClose").onclick = closeM;
+modal.onclick = (e) => { if (e.target === modal) closeM(); };
+
+const hist = document.getElementById("h");
+const openH = () => hist.classList.add("open");
+const closeH = () => hist.classList.remove("open");
+document.getElementById("hClose").onclick = closeH;
+hist.onclick = (e) => { if (e.target === hist) closeH(); };
+
+// ===== CRUD =====
+async function loadCustomers() {
+  const res = await apiFetch("/api/customers");
+  cache = res.ok ? await res.json() : [];
+  render();
+}
+
+function matches(c, q) {
+  q = q.toLowerCase();
+  return [
+    c.maKhach, c.hoTen, c.cccd, c.sdt, c.email, c.diaChi
+  ].some(x => String(x || "").toLowerCase().includes(q));
+}
+
+function render() {
+  const q = document.getElementById("q").value.trim();
+  const rows = q ? cache.filter(c => matches(c, q)) : cache;
+
+  const tbody = document.querySelector("#tbl tbody");
+  tbody.innerHTML = "";
+
+  rows.forEach(c => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${c.maKhach}</b></td>
+      <td>${c.hoTen || ""}</td>
+      <td>${c.cccd || ""}</td>
+      <td>${c.sdt || ""}</td>
+      <td class="muted">${c.email || ""}</td>
+      <td class="muted">${c.diaChi || ""}</td>
+      <td class="row">
+        <button class="btn" data-h="${c.id}">Lịch sử</button>
+        <button class="btn" data-e="${c.id}">Sửa</button>
+        <button class="btn danger" data-d="${c.id}">Xóa</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll("[data-e]").forEach(btn => {
+    btn.onclick = () => {
+      const id = Number(btn.dataset.e);
+      const c = cache.find(x => x.id === id);
+      if (!c) return;
+
+      editingId = id;
+      document.getElementById("mt").textContent = "Sửa khách hàng";
+      document.getElementById("hoTen").value = c.hoTen || "";
+      document.getElementById("cccd").value = c.cccd || "";
+      document.getElementById("sdt").value = c.sdt || "";
+      document.getElementById("email").value = c.email || "";
+      document.getElementById("diaChi").value = c.diaChi || "";
+      openM();
+    };
+  });
+
+  tbody.querySelectorAll("[data-d]").forEach(btn => {
+    btn.onclick = async () => {
+      const id = Number(btn.dataset.d);
+      if (!confirm("Xóa khách hàng này?")) return;
+
+      const res = await apiFetch("/api/customers/" + id, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return alert(data.message || "Lỗi xóa");
+
+      await loadCustomers();
+    };
+  });
+
+  tbody.querySelectorAll("[data-h]").forEach(btn => {
+    btn.onclick = async () => {
+      const id = Number(btn.dataset.h);
+      const res = await apiFetch("/api/customers/" + id + "/history");
+      const data = await res.json().catch(() => ({}));
+      document.getElementById("hOut").textContent = JSON.stringify(data, null, 2);
+      openH();
+    };
+  });
+}
+
+document.getElementById("btnAdd").onclick = () => {
+  editingId = null;
+  document.getElementById("mt").textContent = "Thêm khách hàng";
+  document.getElementById("hoTen").value = "";
+  document.getElementById("cccd").value = "";
+  document.getElementById("sdt").value = "";
+  document.getElementById("email").value = "";
+  document.getElementById("diaChi").value = "";
+  openM();
+};
+
+document.getElementById("mSave").onclick = async () => {
+  const payload = {
+    hoTen: document.getElementById("hoTen").value.trim(),
+    cccd: document.getElementById("cccd").value.trim(),
+    sdt: document.getElementById("sdt").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    diaChi: document.getElementById("diaChi").value.trim()
+  };
+
+  if (!payload.cccd) return alert("CCCD không được để trống");
+
+  let res;
+  if (editingId == null) {
+    res = await apiFetch("/api/customers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } else {
+    res = await apiFetch("/api/customers/" + editingId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return alert(data.message || "Lỗi lưu");
+
+  closeM();
+  await loadCustomers();
+};
+
+document.getElementById("btnSearch").onclick = render;
+document.getElementById("btnClear").onclick = () => { document.getElementById("q").value = ""; render(); };
+document.getElementById("q").addEventListener("input", () => render());
+
+document.getElementById("btnReload").onclick = loadCustomers;
+
+document.getElementById("btnLogout").onclick = async () => {
+  await fetch("/auth/logout", { method: "POST", credentials: "include" });
+  localStorage.removeItem("access_token");
+  location.href = "/login.html";
+};
+
+(async () => {
+  await loadUser();
+  await loadCustomers();
+})();
+</script>
+</body>
+</html>

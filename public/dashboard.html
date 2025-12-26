@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hotel Dashboard</title>
+  <link rel="stylesheet" href="/assets/dashboard.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">H</div>
+      <div>
+        <div class="t">Hotel Admin</div>
+        <small class="muted">Management</small>
+      </div>
+    </div>
+
+    <div class="user">
+      <div><b id="uName">...</b></div>
+      <small id="uRole">...</small>
+    </div>
+
+    <nav class="nav">
+      <a href="#overview" data-page="overview" class="active">Tổng quan</a>
+      <a href="#rooms" data-page="rooms">Quản lý phòng</a>
+      <a href="#services" data-page="services">Quản lý dịch vụ</a>
+      <a href="#customers" data-page="customers">Quản lý khách hàng</a>
+      <a href="#promotions" data-page="promotions">Quản lý khuyến mãi</a>
+      <a href="#reviews" data-page="reviews">Quản lý đánh giá</a>
+      <a href="#revenue" data-page="revenue">Quản lý báo cáo doanh thu</a>
+    </nav>
+  </aside>
+
+  <section class="main">
+    <div class="topbar">
+      <div><b id="pageTitle">Tổng quan</b></div>
+      <div class="row">
+        <button class="btn" id="btnReload">Reload</button>
+        <button class="btn danger" id="btnLogout">Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="grid">
+          <div class="card"><h3>Tổng số phòng</h3><div class="big" id="stTotal">0</div></div>
+          <div class="card"><h3>Phòng trống</h3><div class="big" id="stVacant">0</div></div>
+          <div class="card"><h3>Phòng có khách</h3><div class="big" id="stOccupied">0</div></div>
+          <div class="card"><h3>Bảo trì / Dọn</h3><div class="big" id="stOther">0</div></div>
+        </div>
+        <div style="height:14px"></div>
+        
+        <!-- Phòng trống -->
+        <div class="card">
+          <h3>Phòng trống</h3>
+          <div id="roomsVacantOverview" class="rooms-grid"></div>
+        </div>
+        
+        <div style="height:14px"></div>
+        
+        <!-- Phòng đã đặt -->
+        <div class="card">
+          <h3>Phòng đã đặt</h3>
+          <div id="roomsReservedOverview" class="rooms-grid"></div>
+        </div>
+        
+        <div style="height:14px"></div>
+        
+        <!-- Phòng đang có khách -->
+        <div class="card">
+          <h3>Phòng đang có khách</h3>
+          <div id="roomsOccupiedOverview" class="rooms-grid"></div>
+        </div>
+        
+        <div style="height:14px"></div>
+        
+        <!-- Phòng đang vệ sinh / Bảo dưỡng -->
+        <div class="card">
+          <h3>Phòng bận (Đang vệ sinh / Bảo dưỡng)</h3>
+          <div id="roomsMaintenanceOverview" class="rooms-grid"></div>
+        </div>
+      </div>
+      
+
+      <!-- ROOMS -->
+      <div class="page" id="page-rooms">
+        <div class="room-management-header">
+          <h2 class="room-management-title">Quản lý Phòng</h2>
+          <button class="btn-add-room" id="btnAddRoom">
+            <span class="btn-add-icon">+</span> Thêm Phòng Mới
+          </button>
+        </div>
+
+        <div class="room-status-filters" id="roomFilters">
+          <button class="status-filter active" data-filter="">Tất cả <span id="count-all">(0)</span></button>
+          <button class="status-filter" data-filter="VACANT">Trống <span id="count-vacant">(0)</span></button>
+          <button class="status-filter" data-filter="OCCUPIED">Đã Thuê <span id="count-occupied">(0)</span></button>
+          <button class="status-filter" data-filter="RESERVED">Đặt Trước <span id="count-reserved">(0)</span></button>
+          <button class="status-filter" data-filter="CLEANING">Đang Dọn <span id="count-cleaning">(0)</span></button>
+        </div>
+
+        <div class="rooms-grid-container" id="roomsGrid">
+          <!-- Rooms will be rendered here via JS -->
+        </div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="page" id="page-customers">
+        <div class="row" style="justify-content:space-between">
+          <div class="row">
+            <input type="text" id="filterCustomer" class="btn" placeholder="Tìm kiếm theo tên, email, số điện thoại..." style="min-width:300px" />
+          </div>
+          <button class="btn primary" id="btnAddCustomer">+ Thêm khách hàng</button>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <table class="table" id="customersTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Họ tên</th>
+              <th>Email</th>
+              <th>Số điện thoại</th>
+              <th>Căn cước công dân</th>
+              <th>Địa chỉ</th>
+              <th>Ngày tạo</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- PROMOTIONS -->
+      <div class="page" id="page-promotions">
+        <div class="row" style="justify-content:space-between; align-items: center; margin-bottom: 15px;">
+          <h3>Quản lý khuyến mãi</h3>
+          <button class="btn primary" type="button" id="btnAddPromotion" data-action="promo-add">+ Thêm khuyến mãi</button>
+        </div>
+        <table class="table" id="promotionsTable">
+          <thead>
+            <tr>
+              <th>Mã KM</th>
+              <th>Mô tả</th>
+              <th>Giảm giá (%)</th>
+              <th>Ngày bắt đầu</th>
+              <th>Ngày kết thúc</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- REVIEWS -->
+      <div class="page" id="page-reviews">
+        <div class="row" style="justify-content:space-between; align-items: center; margin-bottom: 15px;">
+          <h3>Quản lý đánh giá</h3>
+          <div class="row" style="gap: 10px;">
+            <button class="btn primary" id="btnAddReview">+ Thêm đánh giá</button>
+            <button class="btn" id="btnRefreshReviews">Làm mới</button>
+          </div>
+        </div>
+        <table class="table" id="reviewsTable">
+          <thead>
+            <tr>
+              <th>Khách hàng</th>
+              <th>Phòng</th>
+              <th>Điểm</th>
+              <th>Nội dung</th>
+              <th>Phản hồi</th>
+              <th>Ngày</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="page" id="page-services">
+        <div class="row" style="justify-content:space-between; align-items: center; margin-bottom: 15px;">
+          <h3>Quản lý dịch vụ</h3>
+          <div class="row" style="gap: 10px;">
+            <button class="btn primary" id="btnAddService">+ Thêm dịch vụ</button>
+            <input type="text" id="searchServiceInput" placeholder="Tìm tên, loại..." style="padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+            <select id="filterServiceType" style="padding: 6px;">
+              <option value="">Tất cả loại</option>
+              <option value="Ăn uống">Ăn uống</option>
+              <option value="Giặt là">Giặt là</option>
+              <option value="Spa">Spa</option>
+              <option value="Khác">Khác</option>
+            </select>
+            <button class="btn" id="btnSearchService">Tìm kiếm</button>
+            <button class="btn" id="btnResetServiceFilters">Đặt lại</button>
+          </div>
+        </div>
+        
+        <div class="row" style="margin-bottom: 10px; gap: 10px;">
+           <input type="number" id="filterServiceMinPrice" placeholder="Giá từ" style="width: 80px; padding: 6px;">
+           <input type="number" id="filterServiceMaxPrice" placeholder="Giá đến" style="width: 80px; padding: 6px;">
+        </div>
+
+        <table class="table" id="servicesTable">
+          <thead>
+            <tr>
+              <th>Tên dịch vụ</th>
+              <th>Loại dịch vụ</th>
+              <th>Giá</th>
+              <th>Mô tả</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- REVENUE REPORTS -->
+      <div class="page" id="page-revenue">
+        <div class="row" style="justify-content:space-between; margin-bottom: 20px;">
+          <div class="row">
+            <input type="date" id="revenueStartDate" class="btn" style="margin-right: 10px;" />
+            <input type="date" id="revenueEndDate" class="btn" style="margin-right: 10px;" />
+            <button class="btn primary" id="btnFilterRevenue">Lọc</button>
+            <button class="btn" id="btnResetRevenue">Đặt lại</button>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-bottom: 20px;">
+          <div class="card">
+            <h3>Tổng doanh thu</h3>
+            <div class="big" id="revenueTotal">0</div>
+            <small class="muted">VNĐ</small>
+          </div>
+          <div class="card">
+            <h3>Doanh thu phòng</h3>
+            <div class="big" id="revenueRooms">0</div>
+            <small class="muted">VNĐ</small>
+          </div>
+          <div class="card">
+            <h3>Doanh thu dịch vụ</h3>
+            <div class="big" id="revenueServices">0</div>
+            <small class="muted">VNĐ</small>
+          </div>
+          <div class="card">
+            <h3>Số booking</h3>
+            <div class="big" id="revenueBookings">0</div>
+            <small class="muted">đơn</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Chi tiết doanh thu</h3>
+          <table class="table" id="revenueTable">
+            <thead>
+              <tr>
+                <th>Mã booking</th>
+                <th>Phòng</th>
+                <th>Khách hàng</th>
+                <th>Ngày check-in</th>
+                <th>Ngày check-out</th>
+                <th>Doanh thu phòng</th>
+                <th>Doanh thu dịch vụ</th>
+                <th>Tổng</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<!-- Modal Room -->
+<div class="modal" id="roomModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b id="modalTitle">Thêm phòng</b>
+      <button class="btn" id="btnCloseModal">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Mã phòng (unique)</label>
+      <input id="roomCode" placeholder="VD: P101" />
+    </div>
+
+    <div class="field">
+      <label>Tên phòng</label>
+      <input id="roomName" placeholder="VD: Phòng 101" />
+    </div>
+
+    <div class="row">
+      <div class="field" style="flex:1">
+        <label>Tầng</label>
+        <input id="floor" type="number" min="1" value="1" />
+      </div>
+      <div class="field" style="flex:1">
+        <label>Loại</label>
+        <select id="roomType">
+          <option value="STANDARD">STANDARD</option>
+          <option value="SUPERIOR">SUPERIOR</option>
+          <option value="DELUXE">DELUXE</option>
+          <option value="SUITE">SUITE</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field" style="flex:1">
+        <label>Giá/đêm</label>
+        <input id="pricePerNight" type="number" min="0" value="0" />
+      </div>
+      <div class="field" style="flex:1">
+        <label>Số lượng giường</label>
+        <input id="bedCount" type="number" min="1" value="1" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tiện nghi</label>
+      <div class="amenities-grid" id="amenitiesContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+        <label><input type="checkbox" value="Wifi"> Wifi</label>
+        <label><input type="checkbox" value="Tivi"> Tivi</label>
+        <label><input type="checkbox" value="Điều hòa"> Điều hòa</label>
+        <label><input type="checkbox" value="Tủ lạnh"> Tủ lạnh</label>
+        <label><input type="checkbox" value="Máy giặt"> Máy giặt</label>
+        <label><input type="checkbox" value="Bếp"> Bếp</label>
+        <label><input type="checkbox" value="Máy chiếu phim"> Máy chiếu phim</label>
+        <label><input type="checkbox" value="Máy chơi game"> Máy chơi game</label>
+        <label><input type="checkbox" value="Bồn tắm"> Bồn tắm</label>
+        <label><input type="checkbox" value="Ban công"> Ban công</label>
+      </div>
+      <input id="amenities" type="hidden" />
+    </div>
+
+    <div class="field">
+      <label>Mô tả phòng</label>
+      <textarea id="description" rows="3" placeholder="Mô tả chi tiết về phòng..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Ghi chú (Nội bộ)</label>
+      <input id="note" placeholder="VD: Gần thang máy..." />
+    </div>
+
+    <div class="field">
+      <label>Trạng thái</label>
+      <select id="status">
+        <option value="VACANT">VACANT</option>
+        <option value="RESERVED">RESERVED</option>
+        <option value="OCCUPIED">OCCUPIED</option>
+        <option value="CLEANING">CLEANING</option>
+        <option value="MAINTENANCE">MAINTENANCE</option>
+      </select>
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn primary" id="btnSaveRoom">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Customer -->
+<div class="modal" id="customerModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b id="customerModalTitle">Thêm khách hàng</b>
+      <button class="btn" id="btnCloseCustomerModal">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Họ tên *</label>
+      <input id="customerFullName" placeholder="VD: Nguyễn Văn A" />
+    </div>
+
+    <div class="field">
+      <label>Email</label>
+      <input id="customerEmail" type="email" placeholder="VD: nguyenvana@example.com" />
+    </div>
+
+    <div class="field">
+      <label>Số điện thoại *</label>
+      <input id="customerPhone" placeholder="VD: 0901234567" />
+    </div>
+
+    <div class="field">
+      <label>Căn cước công dân</label>
+      <input id="customerIdCard" placeholder="VD: 001234567890" />
+    </div>
+
+    <div class="field">
+      <label>Địa chỉ</label>
+      <input id="customerAddress" placeholder="VD: 123 Đường ABC, Quận XYZ, TP.HCM" />
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn primary" id="btnSaveCustomer">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Check-in (cho phòng trống) - Removed -->
+
+<!-- Modal Booking Info (cho phòng đã đặt) -->
+<div class="modal" id="bookingInfoModal">
+  <div class="box" style="max-width:600px">
+    <div class="row" style="justify-content:space-between">
+      <b>Thông tin đặt phòng</b>
+      <button class="btn" id="btnCloseBookingInfoModal">✕</button>
+    </div>
+
+    <div id="bookingInfoContent">
+      <!-- Nội dung sẽ được điền bằng JS -->
+    </div>
+
+    <div class="row" style="justify-content:flex-end; margin-top:20px; gap:10px">
+      <button class="btn" id="btnEditBookingCustomer">Sửa thông tin khách hàng</button>
+      <button class="btn danger" id="btnCancelBooking">Huỷ đặt</button>
+      <button class="btn primary" id="btnCheckInFromBooking">Check-in</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Check-out (cho phòng đang có khách) -->
+<div class="modal" id="checkOutModal">
+  <div class="box" style="max-width:700px">
+    <div class="row" style="justify-content:space-between">
+      <b>Check-out phòng <span id="checkOutRoomCode"></span></b>
+      <button class="btn" id="btnCloseCheckOutModal">✕</button>
+    </div>
+
+    <div id="checkOutContent">
+      <!-- Nội dung sẽ được điền bằng JS -->
+    </div>
+
+    <div class="row" style="justify-content:flex-end; margin-top:20px">
+      <button class="btn" id="btnCancelCheckOut">Hủy</button>
+      <button class="btn primary" id="btnConfirmCheckOut">Xác nhận Check-out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Customer (từ booking) -->
+<div class="modal" id="editBookingCustomerModal">
+  <div class="box" style="max-width:500px">
+    <div class="row" style="justify-content:space-between">
+      <b>Sửa thông tin khách hàng</b>
+      <button class="btn" id="btnCloseEditBookingCustomerModal">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Họ tên *</label>
+      <input id="editBookingCustomerFullName" />
+    </div>
+
+    <div class="field">
+      <label>Email</label>
+      <input id="editBookingCustomerEmail" type="email" />
+    </div>
+
+    <div class="field">
+      <label>Số điện thoại *</label>
+      <input id="editBookingCustomerPhone" />
+    </div>
+
+    <div class="field">
+      <label>Căn cước công dân</label>
+      <input id="editBookingCustomerIdCard" />
+    </div>
+
+    <div class="field">
+      <label>Địa chỉ</label>
+      <input id="editBookingCustomerAddress" />
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="btnCancelEditBookingCustomer">Hủy</button>
+      <button class="btn primary" id="btnSaveEditBookingCustomer">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add/Edit Service -->
+<div class="modal" id="serviceModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b id="serviceModalTitle">Thêm dịch vụ</b>
+      <button class="btn" id="btnCloseServiceModal">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Tên dịch vụ *</label>
+      <input id="svName" placeholder="Nhập tên dịch vụ" />
+    </div>
+
+    <div class="field">
+      <label>Loại dịch vụ</label>
+      <select id="svType">
+        <option value="Khác">Khác</option>
+        <option value="Ăn uống">Ăn uống</option>
+        <option value="Giặt là">Giặt là</option>
+        <option value="Spa">Spa</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Giá *</label>
+      <input type="number" id="svPrice" min="0" placeholder="0" />
+    </div>
+
+    <div class="field">
+      <label>Mô tả</label>
+      <input id="svDesc" placeholder="Mô tả chi tiết" />
+    </div>
+
+    <div class="field">
+      <label>Trạng thái</label>
+      <select id="svStatus">
+        <option value="ACTIVE">Hoạt động</option>
+        <option value="INACTIVE">Ngưng hoạt động</option>
+      </select>
+    </div>
+
+    <div class="row" style="justify-content:flex-end; margin-top: 20px;">
+      <button class="btn" id="btnCancelService">Hủy</button>
+      <button class="btn primary" id="btnSaveService">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Review Detail/Reply -->
+<div class="modal" id="reviewModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b>Chi tiết đánh giá</b>
+      <button class="btn" id="btnCloseReviewModal">✕</button>
+    </div>
+    
+    <div class="field">
+      <label>Khách hàng</label>
+      <input id="rvCustomerName" disabled />
+    </div>
+    <div class="field">
+      <label>Điểm</label>
+      <input id="rvRating" disabled />
+    </div>
+    <div class="field">
+      <label>Nội dung</label>
+      <textarea id="rvComment" rows="3" disabled></textarea>
+    </div>
+    
+    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+    
+    <div class="field">
+      <label>Trạng thái</label>
+      <select id="rvStatus">
+        <option value="VISIBLE">Hiển thị</option>
+        <option value="HIDDEN">Ẩn</option>
+      </select>
+    </div>
+    
+    <div class="field">
+      <label>Trả lời</label>
+      <textarea id="rvReply" rows="3" placeholder="Nhập câu trả lời..."></textarea>
+    </div>
+    
+    <div class="row" style="justify-content:flex-end; margin-top: 20px;">
+      <button class="btn" id="btnCancelReview">Đóng</button>
+      <button class="btn primary" id="btnSaveReview">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Promotion -->
+<div class="modal" id="promotionModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b id="promotionModalTitle">Thêm khuyến mãi</b>
+      <button class="btn" type="button" id="btnClosePromotionModal" data-action="promo-cancel">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Mã khuyến mãi *</label>
+      <input id="pmCode" placeholder="VD: SUMMER2025" />
+    </div>
+
+    <div class="field">
+      <label>Mô tả</label>
+      <input id="pmDesc" placeholder="Mô tả chi tiết" />
+    </div>
+
+    <div class="field">
+      <label>Giảm giá (%) *</label>
+      <input type="number" id="pmDiscount" min="0" max="100" placeholder="0" />
+    </div>
+
+    <div class="row">
+      <div class="field" style="flex:1">
+        <label>Ngày bắt đầu *</label>
+        <input type="date" id="pmStartDate" />
+      </div>
+      <div class="field" style="flex:1">
+        <label>Ngày kết thúc *</label>
+        <input type="date" id="pmEndDate" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Trạng thái</label>
+      <select id="pmStatus">
+        <option value="ACTIVE">Hoạt động</option>
+        <option value="INACTIVE">Ngưng hoạt động</option>
+      </select>
+    </div>
+
+    <div class="row" style="justify-content:flex-end; margin-top: 20px;">
+      <button class="btn" type="button" id="btnCancelPromotion" data-action="promo-cancel">Hủy</button>
+      <button class="btn primary" type="button" id="btnSavePromotion" data-action="promo-save">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Reply Review -->
+<div class="modal" id="replyReviewModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b>Phản hồi đánh giá</b>
+      <button class="btn" type="button" id="btnCloseReplyReviewModal">✕</button>
+    </div>
+    
+    <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+      <i id="reviewContentDisplay" style="color: #666;">...</i>
+    </div>
+
+    <div class="field">
+      <label>Nội dung phản hồi</label>
+      <textarea id="replyContent" rows="4" placeholder="Nhập phản hồi của admin..."></textarea>
+    </div>
+
+    <div class="row" style="justify-content:flex-end; margin-top: 20px;">
+      <button class="btn primary" type="button" id="btnSaveReplyReview">Gửi phản hồi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add Review -->
+<div class="modal" id="addReviewModal">
+  <div class="box">
+    <div class="row" style="justify-content:space-between">
+      <b id="addReviewModalTitle">Thêm đánh giá mới</b>
+      <button class="btn" type="button" id="btnCloseAddReviewModal">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Tên khách hàng *</label>
+      <input id="newRvCustomerName" placeholder="VD: Nguyễn Văn A" />
+    </div>
+
+    <div class="field">
+      <label>Phòng *</label>
+      <select id="newRvRoomId">
+        <option value="">-- Chọn phòng --</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Số sao (1-5) *</label>
+      <select id="newRvRating">
+        <option value="5">5 sao</option>
+        <option value="4">4 sao</option>
+        <option value="3">3 sao</option>
+        <option value="2">2 sao</option>
+        <option value="1">1 sao</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Nội dung đánh giá</label>
+      <textarea id="newRvComment" rows="3" placeholder="Nhập nhận xét..."></textarea>
+    </div>
+
+    <div class="row" style="justify-content:flex-end; margin-top: 20px;">
+      <button class="btn" type="button" id="btnCancelAddReview">Hủy</button>
+      <button class="btn primary" type="button" id="btnSaveAddReview">Lưu đánh giá</button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/dashboard.js"></script>
+</body>
+</html>

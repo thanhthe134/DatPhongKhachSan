@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng ký - Khách sạn</title>
+  <link rel="stylesheet" href="/login.css" />
+</head>
+<body>
+  <div class="bg"></div>
+
+  <main class="card">
+    <header class="brand">
+      <div class="logo">H</div>
+      <div>
+        <h1>Đăng ký tài khoản</h1>
+        <p>Tạo tài khoản để đặt phòng</p>
+      </div>
+    </header>
+
+    <form class="form" autocomplete="on" id="registerForm">
+      <label>
+        <span>Tên tài khoản *</span>
+        <input name="username" type="text" placeholder="vd: khachhang123" required />
+      </label>
+
+      <label>
+        <span>Mật khẩu *</span>
+        <input name="password" type="password" placeholder="Tối thiểu 6 ký tự" required minlength="6" />
+      </label>
+
+      <label>
+        <span>Xác nhận mật khẩu *</span>
+        <input name="confirmPassword" type="password" placeholder="Nhập lại mật khẩu" required />
+      </label>
+
+      <label>
+        <span>Số điện thoại *</span>
+        <input name="phone" type="tel" placeholder="VD: 0901234567" required />
+      </label>
+
+      <div id="errorMsg" style="color: #ef4444; margin: 10px 0; display: none;"></div>
+      <div id="successMsg" style="color: #16a34a; margin: 10px 0; display: none;"></div>
+
+      <button class="btn" type="submit">Đăng ký</button>
+
+      <p class="note" style="text-align: center; margin-top: 20px;">
+        Đã có tài khoản? <a href="/login" style="color: #0ea5e9;">Đăng nhập</a>
+      </p>
+    </form>
+  </main>
+
+  <script>
+    // Check if already logged in
+    const token = localStorage.getItem("customer_access_token");
+    if (token) {
+      window.location.href = "/dashboard";
+    }
+
+    const form = document.getElementById("registerForm");
+    const errorMsg = document.getElementById("errorMsg");
+    const successMsg = document.getElementById("successMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.style.display = "none";
+      successMsg.style.display = "none";
+      
+      const formData = new FormData(form);
+      const username = formData.get("username").trim();
+      const password = formData.get("password");
+      const confirmPassword = formData.get("confirmPassword");
+      const phone = formData.get("phone").trim();
+
+      // Validation
+      if (!username) {
+        errorMsg.textContent = "Vui lòng nhập tên tài khoản";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      if (password.length < 6) {
+        errorMsg.textContent = "Mật khẩu phải có ít nhất 6 ký tự";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        errorMsg.textContent = "Mật khẩu xác nhận không khớp";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      if (!phone) {
+        errorMsg.textContent = "Vui lòng nhập số điện thoại";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      const payload = {
+        username: username,
+        password: password,
+        phone: phone
+      };
+
+      try {
+        const res = await fetch("/customer-auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+        
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          errorMsg.textContent = `Lỗi phản hồi từ server: ${text || "Không thể phân tích phản hồi"}`;
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        if (!res.ok) {
+          errorMsg.textContent = data.message || `Đăng ký thất bại (${res.status})`;
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        // Hiển thị thông báo thành công
+        successMsg.textContent = "Đăng ký thành công! Đang chuyển đến trang đăng nhập...";
+        successMsg.style.display = "block";
+        
+        // Chuyển hướng sau 1.5 giây
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+      } catch (err) {
+        console.error("Registration error:", err);
+        errorMsg.textContent = `Lỗi kết nối: ${err.message || "Không thể kết nối đến server"}`;
+        errorMsg.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

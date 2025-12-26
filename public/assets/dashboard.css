@@ -1,0 +1,311 @@
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;background:#0b1220;color:#0b1220}
+.app{display:flex;min-height:100vh;background:#0f172a}
+.sidebar{
+  width:260px;background:#0b1220;color:#e5e7eb;padding:18px 14px;
+  border-right:1px solid rgba(255,255,255,.08)
+}
+.brand{display:flex;gap:10px;align-items:center;margin-bottom:18px}
+.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#6366f1,#22c55e);font-weight:800}
+.brand .t{font-weight:800}
+.user{margin:14px 0 18px;padding:12px;border-radius:14px;background:rgba(255,255,255,.06)}
+.user small{color:#94a3b8}
+.nav a{
+  display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;
+  color:#e5e7eb;text-decoration:none;margin:6px 0
+}
+.nav a.active,.nav a:hover{background:rgba(255,255,255,.08)}
+.main{flex:1;background:#f6f7fb}
+.topbar{
+  padding:16px 18px;background:#ffffff;border-bottom:1px solid #e5e7eb;
+  display:flex;justify-content:space-between;align-items:center
+}
+.container{padding:18px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px}
+.card h3{margin:0 0 8px;font-size:14px;color:#64748b}
+.card .big{font-size:26px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{
+  padding:10px 12px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;cursor:pointer
+}
+.btn.primary{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+.btn.danger{background:#ef4444;border-color:#ef4444;color:#fff}
+.table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden}
+.table th,.table td{padding:10px 12px;border-bottom:1px solid #eef2f7;text-align:left;font-size:14px}
+.badge{padding:4px 10px;border-radius:999px;font-size:12px;border:1px solid #e5e7eb;display:inline-block}
+.muted{color:#64748b}
+.modal{
+  position:fixed;inset:0;background:rgba(2,6,23,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index: 1000;
+}
+.modal.open{display:flex}
+.modal .box, .modal-box{width:min(520px,96vw);background:#fff;color:#000;border-radius:16px;padding:14px;border:1px solid #e5e7eb}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-header h3 { margin: 0; font-size: 18px; }
+.btn-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
+
+.field{display:grid;gap:6px;margin:10px 0}
+.field input,.field select{padding:10px 12px;border-radius:12px;border:1px solid #cbd5e1;background:#f3f4f6;color:#000}
+.form-row{display:grid;gap:6px;margin:10px 0}
+.form-row label{font-weight:500;color:#000}
+.form-row .input{padding:10px 12px;border-radius:12px;border:1px solid #cbd5e1;width:100%;background:#f3f4f6;color:#000}
+.form-row textarea.input{resize:vertical;min-height:80px}
+.page{display:none}
+.page.active{display:block}
+.rooms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-top:12px}
+
+/* Customer specific grid override */
+#roomsGridContainer.rooms-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.room-box{
+  aspect-ratio:1;background:#fff;border:2px solid #e5e7eb;border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:12px;cursor:pointer;transition:all 0.2s
+}
+.room-box:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.room-name{font-weight:700;font-size:16px;margin-bottom:6px;text-align:center}
+.room-status{font-size:12px;padding:4px 8px;border-radius:6px;text-align:center}
+.room-vacant{border-color:#22c55e}
+.room-vacant .room-status{background:#dcfce7;color:#16a34a}
+.room-occupied{border-color:#f59e0b}
+.room-occupied .room-status{background:#fef3c7;color:#d97706}
+.room-maintenance{border-color:#ef4444}
+.room-maintenance .room-status{background:#fee2e2;color:#dc2626}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){.sidebar{display:none}.grid{grid-template-columns:1fr}}
+
+/* Room Management Styles */
+.room-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.room-management-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.btn-add-room {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #0ea5e9;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-room:hover {
+  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.btn-add-icon {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.room-status-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.status-filter {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.status-filter:hover {
+  background: #f1f5f9;
+}
+
+.status-filter.active {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.status-filter[data-filter="VACANT"]:not(.active) {
+  color: #16a34a;
+}
+
+.status-filter[data-filter="OCCUPIED"]:not(.active) {
+  color: #dc2626;
+}
+
+.status-filter[data-filter="RESERVED"]:not(.active) {
+  color: #2563eb;
+}
+
+.status-filter[data-filter="CLEANING"]:not(.active) {
+  color: #ea580c;
+}
+
+.rooms-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.room-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.room-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.room-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.room-status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.room-status-badge.vacant {
+  background: #16a34a;
+}
+
+.room-status-badge.occupied {
+  background: #dc2626;
+}
+
+.room-status-badge.reserved {
+  background: #2563eb;
+}
+
+.room-status-badge.cleaning {
+  background: #ea580c;
+}
+
+.room-status-badge.maintenance {
+  background: #64748b;
+}
+
+.room-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.room-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.room-type {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.room-price {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.room-price.vacant,
+.room-price.reserved {
+  color: #16a34a;
+}
+
+.room-price.occupied,
+.room-price.cleaning {
+  color: #1e293b;
+}
+
+.room-customer-info {
+  margin-bottom: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.room-customer-info.empty {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.room-customer-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.room-customer-detail svg {
+  width: 16px;
+  height: 16px;
+  color: #64748b;
+}
+
+.room-customer-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.room-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.room-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-details {
+  flex: 1;
+  padding: 10px 16px;
+}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng nhập - Hotel Admin</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="bg"></div>
+
+  <main class="card">
+    <header class="brand">
+      <div class="logo">H</div>
+      <div>
+        <h1>Hotel Management</h1>
+        <p>Đăng nhập để quản lý hệ thống</p>
+      </div>
+    </header>
+
+    <form class="form" autocomplete="on">
+      <label>
+        <span>Tên đăng nhập / Email</span>
+        <input name="identifier" type="text" placeholder="vd: admin hoặc admin@gmail.com" required />
+      </label>
+
+      <label>
+        <span>Mật khẩu</span>
+        <input name="password" type="password" placeholder="••••••••" required />
+      </label>
+
+      <div class="row">
+        <label class="chk">
+          <input type="checkbox" name="remember" />
+          <span>Ghi nhớ đăng nhập</span>
+        </label>
+      </div>
+
+      <button class="btn" type="submit">Đăng nhập</button>
+
+      <p class="note">
+        Chỉ dành cho nhân viên/ quản trị.
+      </p>
+    </form>
+  </main>
+
+  <script>
+    const form = document.querySelector("form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      const payload = {
+        identifier: formData.get("identifier"),
+        password: formData.get("password")
+      };
+
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Đăng nhập thất bại");
+        return;
+      }
+
+      localStorage.setItem("access_token", data.accessToken);
+      window.location.href = "/dashboard";
+    });
+  </script>
+</body>
+</html>
