@@ -34,8 +34,8 @@ npm start:customer
 
 ### 3. Truy cập
 
-- Server chính (Admin): http://localhost:4000
-- Server khách hàng: http://localhost:6001
+- Server chính (Admin): http://localhost:3000
+- Server khách hàng: http://localhost:5000
 
 ## Cấu trúc
 
